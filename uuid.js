@@ -1,91 +1,22 @@
-
-/*
-    of course read the spec for the most accurate information/terminology (https://tools.ietf.org/html/rfc4122).
-    this is just to help people wrap their head around what uuids are. this is not an efficient method of generating them.
-    to create a uuid correctly there are some rules to follow, but first you have to choose a uuid version.
-    all version garentee uniqueness, so you can think of the different "versions" just as different "algorithms" for generating valid uniqiue ids.
-    in this exemple we will use version 4 because the algorithm is easy to achieve in JS.
-    simply put, a uuid is just a really big number that is created with enough random stuff to make it unique.
-
-    example of a uuid:
-        hex: f81d4fae7dec11d0a76500a0c91e6bf6
-        dec: 329800735698586629295641978511506172918
-        bin: 11111000000111010100111110101110011111011110110000010001110100001010011101100101000000001010000011001001000111100110101111110110
-
-    when representing a uuid as a string the spec say to represent it as a hexidecimal and to put dashes in it lik this:
-        uuid string: f81d4fae-7dec-11d0-a765-00a0c91e6bf6
-
-    the hypens in the string representation of the uuid are there to seperate significant parts.
-    the size of each part is defined in the spec (https://tools.ietf.org/html/rfc4122#section-4.1.2).
-    here are the different parts:
-        time-low "-" time-mid "-" time-high-and-version "-" clock-seq-and-reserved  clock-seq-low "-" node
-
-    when using version 4, all parts can be random generated and no longer need to be represented by time.
-    here is what the spec say about version 4:
-
-        timestamp:
-            (https://tools.ietf.org/html/rfc4122#section-4.1.4)
-            For UUID version 4, the timestamp is a randomly or pseudo-randomly
-            generated 60-bit value, as described in Section 4.4.
-
-        clock sequence:
-            (https://tools.ietf.org/html/rfc4122#section-4.1.5)
-            For UUID version 4, clock sequence is a randomly or pseudo-randomly
-            generated 14-bit value as described in Section 4.4.
-
-        node:
-            (https://tools.ietf.org/html/rfc4122#section-4.1.6)
-            For UUID version 4, the node field is a randomly or pseudo-randomly
-            generated 48-bit value as described in Section 4.4.
-
-
-    the spec also mention that the uuid should contain the uuid version number. 
-    4 bits are allocated for specifying the version number. 
-    uuid version 4 is just the number 4 in binary. (e.g. 0100)
-
-        version number:
-            (https://tools.ietf.org/html/rfc4122#section-4.1.3)
-            The version number is in the most significant 4 bits of the time
-            stamp (bits 4 through 7 of the time_hi_and_version field).
-
-
-
-
-    here are the Algorithm instruction we will follow:
-    (https://tools.ietf.org/html/rfc4122#section-4.4)
-
-        4.4.  Algorithms for Creating a UUID from Truly Random or Pseudo-Random Numbers
-
-            The version 4 UUID is meant for generating UUIDs from truly-random or
-            pseudo-random numbers.
-
-            The algorithm is as follows:
-
-            o  Set the two most significant bits (bits 6 and 7) of the
-               clock_seq_hi_and_reserved to zero and one, respectively.
-
-            o  Set the four most significant bits (bits 12 through 15) of the
-               time_hi_and_version field to the 4-bit version number from
-               Section 4.1.3.
-
-            o  Set all the other bits to randomly (or pseudo-randomly) chosen
-               values.
-*/
-
-
-
-/*
-var a = new Uint8Array(16)
-window.crypto.getRandomValues(a)
-*/
-
 class uuid {
     constructor(X) {
         this.uInt8Array = new Uint8Array(16)
-        if (this.testURN(X)) {
-            this.parseURN(X)
+        
+        // generate a new uuid
+        if(!X){
+            this.uInt8Array = this.v4()
         }
-        else {
+        // test X for uuid URN
+        else if (typeof X === 'string' &&  this.testURN(X)) {
+            this.uInt8Array = this.URNToUint8Array(X)
+        }
+        // test if X was proably supposed to be a uuid in some form
+        else if (X.length >= 36){
+            throw `'${X}' is not a valid UUID`
+        }
+
+        // generate uuid by specified version number
+        else if (X.length <= 2) {
             switch (X) {
                 case 4:
                     this.uInt8Array = this.v4()
@@ -139,8 +70,26 @@ class uuid {
         return versionInt
     }
 
-    // UUID Version Generator (https://tools.ietf.org/html/rfc4122#section-4.4)
+    // UUID Version 4 Generator (https://tools.ietf.org/html/rfc4122#section-4.4)
     v4() {
+        /*
+        4.4.  Algorithms for Creating a UUID from Truly Random or Pseudo-Random Numbers
+
+            The version 4 UUID is meant for generating UUIDs from truly-random or
+            pseudo-random numbers.
+
+            The algorithm is as follows:
+
+            o  Set the two most significant bits (bits 6 and 7) of the
+               clock_seq_hi_and_reserved to zero and one, respectively.
+
+            o  Set the four most significant bits (bits 12 through 15) of the
+               time_hi_and_version field to the 4-bit version number from
+               Section 4.1.3.
+
+            o  Set all the other bits to randomly (or pseudo-randomly) chosen
+               values.
+        */
         let uuid = new Uint8Array(16)
         /* 
             time-low
@@ -197,9 +146,8 @@ class uuid {
     }
 
     // utils
-
-    parseURN(U) {
-        let hexArray = new Array()
+    URNToUint8Array(U) {
+        let hexArray = new Array(16)
         hexArray[0] = U.slice(0, 2)
         hexArray[1] = U.slice(2, 4)
         hexArray[2] = U.slice(4, 6)
@@ -210,27 +158,27 @@ class uuid {
         hexArray[7] = U.slice(16, 18)
         hexArray[8] = U.slice(19, 21)
         hexArray[9] = U.slice(21, 23)
-        hexArray[10] = U.slice(23, 25)
-        hexArray[11] = U.slice(25, 27)
-        hexArray[12] = U.slice(27, 29)
-        hexArray[13] = U.slice(29, 31)
-        hexArray[14] = U.slice(31, 33)
-        hexArray[15] = U.slice(33, 35)
+        hexArray[10] = U.slice(24, 26)
+        hexArray[11] = U.slice(26, 28)
+        hexArray[12] = U.slice(28, 30)
+        hexArray[13] = U.slice(30, 32)
+        hexArray[14] = U.slice(32, 34)
+        hexArray[15] = U.slice(34, 36)
+
+        let uInt8Array = new Uint8Array(16)
         for (let i = 0; i < 16; i++) {
-            this.uInt8Array[i] = parseInt(hexArray[i], 16)
+            uInt8Array[i] = parseInt(hexArray[i], 16)
         }
+        return uInt8Array
     }
     testURN(U) {
-        let urnRegex = /[0-9abcdefABCDEF]{8,}-[0-9abcdefABCDEF]{4,}-[0-9abcdefABCDEF]{4,}-[0-9abcdefABCDEF]{4,}-[0-9abcdefABCDEF]{12,}/g
-        if (urnRegex.exec(U)) {
-            return true
-        }
-        else {
-            return false
-        }
+        let hex = '[0-9abcdefABCDEF]'
+        let urnRegex = RegExp(`^${hex}{8}-${hex}{4}-${hex}{4}-${hex}{4}-${hex}{12}$`,'g')
+        let result = urnRegex.test(U)
+        return result
     }
     randomBitArray(length) {
-        let octet = new Array(length)
+        let octets = new Array(length)
 
         for (let i = 0; i < length; i++) {
             // create a random number e.g. 0.14941616108708966
@@ -240,9 +188,9 @@ class uuid {
             let binaryDigit = Math.round(randomFloat)
 
             // add the binary digit to our octet array
-            octet[i] = binaryDigit
+            octets[i] = binaryDigit
         }
-        return octet
+        return octets
     }
     uInt8ArrayToBinArray(A) {
         let BinaryArray = new Array()
