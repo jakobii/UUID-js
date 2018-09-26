@@ -9,7 +9,7 @@ Create a new UUID object.
 ```js
 id = new uuid()
 console.log(
-    id.URN,
+    id.URN, // Uniform Resource Name (e.g. ae4cea8b-8ba3-1514-35af-00de329d27ed)
     id.uInt8Array,
     id.binaryArray,
     id.binaryString,
