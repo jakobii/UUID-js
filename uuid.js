@@ -1,7 +1,7 @@
-class uuid {
+class UUID {
     constructor(X) {
         this.uInt8Array = new Uint8Array(16)
-        
+
         // generate a new uuid
         if(!X){
             this.uInt8Array = this.v4()
@@ -29,6 +29,12 @@ class uuid {
                     break
             }
         }
+        __proto__.toString = function (){
+            return this.URN
+        }
+    }
+    toString(){
+        return this.URN
     }
     // uuid parts (https://tools.ietf.org/html/rfc4122#section-4.1.2)
     get timeLow() { return this.uInt8Array.slice(0, 4) }
@@ -91,7 +97,7 @@ class uuid {
                values.
         */
         let uuid = new Uint8Array(16)
-        /* 
+        /*
             time-low
             in v4 its just 32 bits of random numbers.
         */
@@ -100,14 +106,14 @@ class uuid {
         uuid[2] = this.randomBitArray(8).join('').toString(10)
         uuid[3] = this.randomBitArray(8).join('').toString(10)
 
-        /* 
-            time_mid 
+        /*
+            time_mid
             in v4 its just 16 bits of random numbers.
         */
         uuid[4] = this.randomBitArray(8).join('').toString(10)
         uuid[5] = this.randomBitArray(8).join('').toString(10)
 
-        /* 
+        /*
             time_hi_and_version
             this is a ticky part, becuase the documentation seems to disagree
             with itself about where to to place the 4 bit version information.
@@ -118,20 +124,20 @@ class uuid {
         uuid[6] = this.randomBitArray(8).join('').toString(10)
         uuid[7] = this.randomBitArray(4).concat([0, 1, 0, 0]).join('').toString(10)
 
-        /* 
+        /*
             clock-seq-and-reserved
             bits 6-7 need to be '01'. (https://tools.ietf.org/html/rfc4122#section-4.4)
             this is only 8 bits long.
         */
         uuid[8] = this.randomBitArray(6).concat([0, 1]).join('').toString(10)
 
-        /* 
+        /*
             clock-seq-low
             random 8 bits
         */
         uuid[9] = this.randomBitArray(8).join('').toString(10)
 
-        /* 
+        /*
             node
             in v4 this is random 48 bits
         */

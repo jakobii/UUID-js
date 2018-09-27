@@ -1,8 +1,13 @@
-var http = require('./uuid.js');
+var uuid = require('./uuid.js');
 
 
 id = new uuid('02ad4d2a-5fd6-8414-2d98-fd120b3e9052')
+
+
 console.log(
+    id.toString(),
+    String(id),
+    toString.call(id),
     id.URN,
     id.uInt8Array,
     id.binaryArray,
@@ -12,12 +17,6 @@ console.log(
     id.testURN(id.URN),
     id.version,
 )
-
-
-
-
-
-
 
 
 
@@ -64,8 +63,8 @@ console.log(
             generated 48-bit value as described in Section 4.4.
 
 
-    the spec also mention that the uuid should contain the uuid version number. 
-    4 bits are allocated for specifying the version number. 
+    the spec also mention that the uuid should contain the uuid version number.
+    4 bits are allocated for specifying the version number.
     uuid version 4 is just the number 4 in binary. (e.g. 0100)
 
         version number:
